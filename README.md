@@ -868,6 +868,5 @@ plt.show()
 
 
     
-![png](output_29_0.png)
-    
+![png](mpg_files/output_29_0.png)
 
