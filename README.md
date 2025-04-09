@@ -1,23 +1,5 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[76]:
-
-
+```python
 # Importing libraries and packages
-import sys
-import subprocess
-
-# List of required packages
-required_packages = ['pandas', 'numpy', 'seaborn', 'matplotlib', 'statsmodels', 'scikit-learn', 'xgboost']
-
-for package in required_packages:
-    try:
-        __import__(package)
-    except ImportError:
-        print(f"{package} not found. Installing...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt  # for visualization purposes
@@ -36,13 +18,12 @@ from xgboost import XGBRegressor # XGB Regressor
 
 import warnings
 warnings.filterwarnings('ignore')
+```
+
+## Data import
 
 
-# ## Data import
-
-# In[77]:
-
-
+```python
 # Load data from the repository
 data = pd.read_csv('https://archive.ics.uci.edu/ml/machine-learning-databases/auto-mpg/auto-mpg.data', sep="\\s+", header=None)
 
@@ -51,88 +32,366 @@ data.columns = ['mpg', 'cylinders', 'displacement', 'horsepower' , 'weight', 'ac
 
 # Initial glance over data
 data.head()
+```
 
 
-# ## Data cleaning
-
-# ### Checking for variable types and missing values
-
-# In[78]:
 
 
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>mpg</th>
+      <th>cylinders</th>
+      <th>displacement</th>
+      <th>horsepower</th>
+      <th>weight</th>
+      <th>acceleration</th>
+      <th>model year</th>
+      <th>origin</th>
+      <th>car</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>18.0</td>
+      <td>8</td>
+      <td>307.0</td>
+      <td>130.0</td>
+      <td>3504.0</td>
+      <td>12.0</td>
+      <td>70</td>
+      <td>1</td>
+      <td>chevrolet chevelle malibu</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>15.0</td>
+      <td>8</td>
+      <td>350.0</td>
+      <td>165.0</td>
+      <td>3693.0</td>
+      <td>11.5</td>
+      <td>70</td>
+      <td>1</td>
+      <td>buick skylark 320</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>18.0</td>
+      <td>8</td>
+      <td>318.0</td>
+      <td>150.0</td>
+      <td>3436.0</td>
+      <td>11.0</td>
+      <td>70</td>
+      <td>1</td>
+      <td>plymouth satellite</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>16.0</td>
+      <td>8</td>
+      <td>304.0</td>
+      <td>150.0</td>
+      <td>3433.0</td>
+      <td>12.0</td>
+      <td>70</td>
+      <td>1</td>
+      <td>amc rebel sst</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>17.0</td>
+      <td>8</td>
+      <td>302.0</td>
+      <td>140.0</td>
+      <td>3449.0</td>
+      <td>10.5</td>
+      <td>70</td>
+      <td>1</td>
+      <td>ford torino</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+## Data cleaning
+
+### Checking for variable types and missing values
+
+
+```python
 # Information about variable types and null values
 data.info()
+```
+
+    <class 'pandas.core.frame.DataFrame'>
+    RangeIndex: 398 entries, 0 to 397
+    Data columns (total 9 columns):
+     #   Column        Non-Null Count  Dtype  
+    ---  ------        --------------  -----  
+     0   mpg           398 non-null    float64
+     1   cylinders     398 non-null    int64  
+     2   displacement  398 non-null    float64
+     3   horsepower    398 non-null    object 
+     4   weight        398 non-null    float64
+     5   acceleration  398 non-null    float64
+     6   model year    398 non-null    int64  
+     7   origin        398 non-null    int64  
+     8   car           398 non-null    object 
+    dtypes: float64(4), int64(3), object(2)
+    memory usage: 28.1+ KB
 
 
-# In[79]:
 
-
+```python
 # There must be a reason why column horsepower is object when in reality should be float64 (number)
 # so we use .unique to display unique values and check for oddities
 data.horsepower.unique()
+```
 
 
-# In[80]:
 
 
+    array(['130.0', '165.0', '150.0', '140.0', '198.0', '220.0', '215.0',
+           '225.0', '190.0', '170.0', '160.0', '95.00', '97.00', '85.00',
+           '88.00', '46.00', '87.00', '90.00', '113.0', '200.0', '210.0',
+           '193.0', '?', '100.0', '105.0', '175.0', '153.0', '180.0', '110.0',
+           '72.00', '86.00', '70.00', '76.00', '65.00', '69.00', '60.00',
+           '80.00', '54.00', '208.0', '155.0', '112.0', '92.00', '145.0',
+           '137.0', '158.0', '167.0', '94.00', '107.0', '230.0', '49.00',
+           '75.00', '91.00', '122.0', '67.00', '83.00', '78.00', '52.00',
+           '61.00', '93.00', '148.0', '129.0', '96.00', '71.00', '98.00',
+           '115.0', '53.00', '81.00', '79.00', '120.0', '152.0', '102.0',
+           '108.0', '68.00', '58.00', '149.0', '89.00', '63.00', '48.00',
+           '66.00', '139.0', '103.0', '125.0', '133.0', '138.0', '135.0',
+           '142.0', '77.00', '62.00', '132.0', '84.00', '64.00', '74.00',
+           '116.0', '82.00'], dtype=object)
+
+
+
+
+```python
 # The odd value is "?" which represents a null value and we can substitute it for a mean horsepower
 data.horsepower = data.horsepower.str.replace('?','NaN').astype(float) # this replaces '?' with nan
 data.horsepower.fillna(data.horsepower.mean(), inplace=True) # this replaces all nan values with mean
 
 # to simplify, make the column int type
 data.horsepower = data.horsepower.astype(int)
+```
+
+### Checking for duplicate values
 
 
-# ### Checking for duplicate values
-
-# In[81]:
-
-
+```python
 # Information about duplicate values
 print("Duplicate rows:", data.duplicated().sum())
+```
+
+    Duplicate rows: 0
 
 
-# ### Checking for zero values
-
-# In[82]:
+### Checking for zero values
 
 
+```python
 print((data == 0).sum())
+```
+
+    mpg             0
+    cylinders       0
+    displacement    0
+    horsepower      0
+    weight          0
+    acceleration    0
+    model year      0
+    origin          0
+    car             0
+    dtype: int64
 
 
-# ### Checking for outliers and inconsistencies
-
-# In[83]:
+### Checking for outliers and inconsistencies
 
 
+```python
 display(data.describe())
+```
 
 
-# ## Visual inspection
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
 
-# In[84]:
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>mpg</th>
+      <th>cylinders</th>
+      <th>displacement</th>
+      <th>horsepower</th>
+      <th>weight</th>
+      <th>acceleration</th>
+      <th>model year</th>
+      <th>origin</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>count</th>
+      <td>398.000000</td>
+      <td>398.000000</td>
+      <td>398.000000</td>
+      <td>398.000000</td>
+      <td>398.000000</td>
+      <td>398.000000</td>
+      <td>398.000000</td>
+      <td>398.000000</td>
+    </tr>
+    <tr>
+      <th>mean</th>
+      <td>23.514573</td>
+      <td>5.454774</td>
+      <td>193.425879</td>
+      <td>104.462312</td>
+      <td>2970.424623</td>
+      <td>15.568090</td>
+      <td>76.010050</td>
+      <td>1.572864</td>
+    </tr>
+    <tr>
+      <th>std</th>
+      <td>7.815984</td>
+      <td>1.701004</td>
+      <td>104.269838</td>
+      <td>38.199230</td>
+      <td>846.841774</td>
+      <td>2.757689</td>
+      <td>3.697627</td>
+      <td>0.802055</td>
+    </tr>
+    <tr>
+      <th>min</th>
+      <td>9.000000</td>
+      <td>3.000000</td>
+      <td>68.000000</td>
+      <td>46.000000</td>
+      <td>1613.000000</td>
+      <td>8.000000</td>
+      <td>70.000000</td>
+      <td>1.000000</td>
+    </tr>
+    <tr>
+      <th>25%</th>
+      <td>17.500000</td>
+      <td>4.000000</td>
+      <td>104.250000</td>
+      <td>76.000000</td>
+      <td>2223.750000</td>
+      <td>13.825000</td>
+      <td>73.000000</td>
+      <td>1.000000</td>
+    </tr>
+    <tr>
+      <th>50%</th>
+      <td>23.000000</td>
+      <td>4.000000</td>
+      <td>148.500000</td>
+      <td>95.000000</td>
+      <td>2803.500000</td>
+      <td>15.500000</td>
+      <td>76.000000</td>
+      <td>1.000000</td>
+    </tr>
+    <tr>
+      <th>75%</th>
+      <td>29.000000</td>
+      <td>8.000000</td>
+      <td>262.000000</td>
+      <td>125.000000</td>
+      <td>3608.000000</td>
+      <td>17.175000</td>
+      <td>79.000000</td>
+      <td>2.000000</td>
+    </tr>
+    <tr>
+      <th>max</th>
+      <td>46.600000</td>
+      <td>8.000000</td>
+      <td>455.000000</td>
+      <td>230.000000</td>
+      <td>5140.000000</td>
+      <td>24.800000</td>
+      <td>82.000000</td>
+      <td>3.000000</td>
+    </tr>
+  </tbody>
+</table>
+</div>
 
 
+## Visual inspection
+
+
+```python
 # First drop variable car
 data1 = data.drop(['car'], axis=1)
 
 # Visually inspect variables
 data1.hist(figsize=(12, 8), color='#298c8c')
 plt.show()
+```
 
 
-# In[85]:
+    
+![png](output_15_0.png)
+    
 
 
+
+```python
 # Explore relationships between variables visually (correlation matrix)
 plt.figure(figsize=(10,6))
 sns.heatmap(data1.corr(),cmap=plt.cm.Blues,annot=True) # use seaborn
 plt.show()
+```
 
 
-# In[86]:
+    
+![png](output_16_0.png)
+    
 
 
+
+```python
 # Cylinders, Displacement, Horsepower and Weight are all highly (negatively) correlated so we have multicollinearity issue
 # Calculate variance inflation factor (VIF) for each variable to determine which one to keep
 X1 = sm.tools.add_constant(data1) # add intercept to the dataset 
@@ -140,11 +399,26 @@ X1 = sm.tools.add_constant(data1) # add intercept to the dataset
 vif1 = pd.Series([variance_inflation_factor(X1.values,i)
                      for i in range(X1.shape[1])], index=X1.columns)
 vif1
+```
 
 
-# In[87]:
 
 
+    const           780.811358
+    mpg               5.583594
+    cylinders        10.742336
+    displacement     22.159830
+    horsepower        9.056781
+    weight           13.468785
+    acceleration      2.515908
+    model year        1.954947
+    origin            1.853326
+    dtype: float64
+
+
+
+
+```python
 # Highest VIF is Displacement so remove all variables with VIF above 10 and check again
 data2 = data1.drop(['cylinders', 'displacement', 'weight'],axis=1)
 
@@ -153,30 +427,41 @@ X2 = sm.tools.add_constant(data2)
 vif2 = pd.Series([variance_inflation_factor(X2.values,i) 
                      for i in range(X2.shape[1])], index=X2.columns)
 vif2
+```
 
 
-# #### All looks good and none of the variables' VIF is above 5 so other variables are all included in the model
-
-# ## Predictive modeling
-
-# ### Split the dataset into training and testing data
-
-# In[88]:
 
 
+    const           715.683761
+    mpg               3.982206
+    horsepower        4.131289
+    acceleration      2.029527
+    model year        1.607080
+    origin            1.542532
+    dtype: float64
+
+
+
+#### All looks good and none of the variables' VIF is above 5 so other variables are all included in the model
+
+## Predictive modeling
+
+### Split the dataset into training and testing data
+
+
+```python
 # Divide data into independent and dependent data (X, y)
 X = data2.drop('mpg',axis=1)  # create a DF of independent variables (without a dependent variable)
 y = data2.mpg   # create a series of the dependent variable
 
 # split the data into training and testing data (80-20 split)
 X_train,X_test,y_train,y_test = train_test_split(X, y, test_size=.2, random_state=42)
+```
+
+### Fit regression models
 
 
-# ### Fit regression models
-
-# In[89]:
-
-
+```python
 # Linear Regression
 model_1 = Pipeline([
     ('scaler', StandardScaler()),
@@ -394,11 +679,61 @@ print(' Test  R2 : {:.4f}'.format(m7_test_r2))
 print(' Train MSE: {:.4f}'.format(m7_train_mse))
 print(' Test  MSE: {:.4f}'.format(m7_test_mse))
 print(' CV R2: (M ± SD): {:.4f} ± {:.4f} \n'.format(cv_scores7.mean(), cv_scores7.std()))
+```
+
+    Model 1: Linear Regression
+     Train R2 : 0.7425
+     Test  R2 : 0.7719
+     Train MSE: 16.1446
+     Test  MSE: 12.2617
+     CV R2: (M ± SD): 0.7317 ± 0.0452 
+    
+    Model 2: Ridge
+     Train R2 : 0.7425
+     Test  R2 : 0.7720
+     Train MSE: 16.1446
+     Test  MSE: 12.2571
+     CV R2: (M ± SD): 0.7317 ± 0.0453 
+    
+    Model 3: Lasso
+     Train R2 : 0.7425
+     Test  R2 : 0.7720
+     Train MSE: 16.1446
+     Test  MSE: 12.2572
+     CV R2: (M ± SD): 0.7317 ± 0.0452 
+    
+    Model 4: Decision Tree Regressor
+     Train R2 : 0.8775
+     Test  R2 : 0.8397
+     Train MSE: 7.6775
+     Test  MSE: 8.6200
+     CV R2: (M ± SD): 0.7947 ± 0.0205 
+    
+    Model 5: Random Forest Regressor
+     Train R2 : 0.9106
+     Test  R2 : 0.8832
+     Train MSE: 5.6023
+     Test  MSE: 6.2799
+     CV R2: (M ± SD): 0.8245 ± 0.0353 
+    
+    Model 6: Gradient Boosting Regressor
+     Train R2 : 0.9364
+     Test  R2 : 0.8801
+     Train MSE: 3.9858
+     Test  MSE: 6.4462
+     CV R2: (M ± SD): 0.8381 ± 0.0185 
+    
+    Model 7: XGBoost Regressor
+     Train R2 : 0.9526
+     Test  R2 : 0.8692
+     Train MSE: 2.9697
+     Test  MSE: 7.0312
+     CV R2: (M ± SD): 0.8251 ± 0.0239 
+    
 
 
-# In[93]:
 
-
+```python
 # Create the table with parameters from above for easy comparison
 model_results = pd.DataFrame({
     'Model': [
@@ -425,25 +760,131 @@ model_results = model_results.round(3)
 
 # Display the table
 model_results.sort_values(by=['Test_R2'], ascending=False)
+```
 
 
-# ## Best fitting model
-
-# The Decision Tree Regressor shows a strong test R² of 0.8536, but the relatively large gap between train MSE (7.91) and test MSE (7.87) suggests a close but potentially overfit model. Its cross-validated R² of 0.7621 with a standard deviation of 0.0229 indicates moderate generalizability, though not as high as some ensemble methods.
-# 
-# Comparing the Random Forest Regressor and the Gradient Boosting Regressor, both exhibit excellent performance. Their test R² values are very close (0.8832 for Random Forest vs. 0.8801 for Gradient Boosting), indicating strong and similar generalization. However, Gradient Boosting achieves lower train and test MSE (3.99 and 6.45 respectively) compared to Random Forest (5.60 and 6.28), suggesting a slightly better fit.
-# 
-# Moreover, Gradient Boosting has the highest cross-validated R² of 0.8381 and the smallest standard deviation (0.0185) among all models, indicating both excellent predictive power and exceptional stability across folds.
-# 
-# While XGBoost shows the highest Train R² (0.9526) and lowest Train MSE (2.97), its larger gap to Test R² (0.8692) and Test MSE (7.03) suggests a degree of overfitting. Its CV R² of 0.8251 is strong, but still slightly lower than that of Gradient Boosting.
-# 
-# For these reasons, Gradient Boosting Regressor is identified as the best-performing model for this dataset, offering a strong balance of accuracy, generalization, and stability.
-
-# ## Vizualization of predicted vs. actual data
-
-# In[91]:
 
 
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Model</th>
+      <th>Train_R2</th>
+      <th>Test_R2</th>
+      <th>Train_MSE</th>
+      <th>Test_MSE</th>
+      <th>CV_R2_Mean</th>
+      <th>CV_R2_SD</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>4</th>
+      <td>Random Forest Regressor</td>
+      <td>0.911</td>
+      <td>0.883</td>
+      <td>5.602</td>
+      <td>6.280</td>
+      <td>0.824</td>
+      <td>0.035</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>Gradient Boosting Regressor</td>
+      <td>0.936</td>
+      <td>0.880</td>
+      <td>3.986</td>
+      <td>6.446</td>
+      <td>0.838</td>
+      <td>0.019</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>XGBoost Regressor</td>
+      <td>0.953</td>
+      <td>0.869</td>
+      <td>2.970</td>
+      <td>7.031</td>
+      <td>0.825</td>
+      <td>0.024</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>Decision Tree Regressor</td>
+      <td>0.878</td>
+      <td>0.840</td>
+      <td>7.678</td>
+      <td>8.620</td>
+      <td>0.795</td>
+      <td>0.020</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>Linear Regression</td>
+      <td>0.742</td>
+      <td>0.772</td>
+      <td>16.145</td>
+      <td>12.262</td>
+      <td>0.732</td>
+      <td>0.045</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Ridge</td>
+      <td>0.742</td>
+      <td>0.772</td>
+      <td>16.145</td>
+      <td>12.257</td>
+      <td>0.732</td>
+      <td>0.045</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>Lasso</td>
+      <td>0.742</td>
+      <td>0.772</td>
+      <td>16.145</td>
+      <td>12.257</td>
+      <td>0.732</td>
+      <td>0.045</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+## Best fitting model
+
+The Decision Tree Regressor shows a strong test R² of 0.8536, but the relatively large gap between train MSE (7.91) and test MSE (7.87) suggests a close but potentially overfit model. Its cross-validated R² of 0.7621 with a standard deviation of 0.0229 indicates moderate generalizability, though not as high as some ensemble methods.
+
+Comparing the Random Forest Regressor and the Gradient Boosting Regressor, both exhibit excellent performance. Their test R² values are very close (0.8832 for Random Forest vs. 0.8801 for Gradient Boosting), indicating strong and similar generalization. However, Gradient Boosting achieves lower train and test MSE (3.99 and 6.45 respectively) compared to Random Forest (5.60 and 6.28), suggesting a slightly better fit.
+
+Moreover, Gradient Boosting has the highest cross-validated R² of 0.8381 and the smallest standard deviation (0.0185) among all models, indicating both excellent predictive power and exceptional stability across folds.
+
+While XGBoost shows the highest Train R² (0.9526) and lowest Train MSE (2.97), its larger gap to Test R² (0.8692) and Test MSE (7.03) suggests a degree of overfitting. Its CV R² of 0.8251 is strong, but still slightly lower than that of Gradient Boosting.
+
+For these reasons, Gradient Boosting Regressor is identified as the best-performing model for this dataset, offering a strong balance of accuracy, generalization, and stability.
+
+## Vizualization of predicted vs. actual data
+
+
+```python
 # Create a scatterplot comparing actual and predicted mpg values
 dataP = data2.drop('mpg',axis=1)  # create a new DataFrame of the feature variables
 
@@ -460,3 +901,10 @@ plt.xlabel('Car index')
 plt.ylabel('Mile Per Gallon (mpg)')
 plt.legend(loc='upper left')
 plt.show()
+```
+
+
+    
+![png](output_29_0.png)
+    
+
